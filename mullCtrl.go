@@ -84,15 +84,3 @@ func runCommand(args []string) (string, error) {
 	return string(output), nil
 }
 
-func main() {
-	m := NewMullControlClient()
-	fmt.Println(m.GetAccount())
-	for i := 0; i < 10; i++ {
-		err := m.IterateAllRandom()
-		if err != nil {
-			panic(err)
-		}
-		time.Sleep(time.Second * 10)
-	}
-
-}
