@@ -1,4 +1,4 @@
-package main
+package mullCtrl
 
 import (
 	"encoding/json"
