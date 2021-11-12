@@ -19,7 +19,47 @@ type MullControl struct {
 	connectionMap map[string]bool
 }
 
-// IterateAllRandom connects on each call to a randomly chosen server. Each server is chosen exactly once.
+// IterateCountryRandom connects on each call to a randomly chosen server from the selected country.
+// Each server is chosen exactly once.
+func (m *MullControl) IterateCountryRandom(country string) (err error) {
+	// Get server list and connection map if we don't have it
+	if m.serverList == nil {
+		_, err = m.GetServers()
+		if err != nil {
+			return err
+		}
+		m.iterationList = make([]Server, 0)
+
+		// Only use servers from the chosen country
+		for _, server := range m.serverList {
+			if server.CountryShort == country {
+				m.iterationList = append(m.iterationList, server)
+			}
+		}
+	}
+
+	if len(m.iterationList) == 0 {
+		return errors.New("All servers have been selected.")
+	}
+
+	// Pick one
+	pick := rand.Intn(len(m.iterationList))
+
+	err = m.ConnectToServer(m.iterationList[pick])
+	if err != nil {
+		return err
+	}
+
+	// Remove it
+	m.iterationList[pick] = m.iterationList[len(m.iterationList)-1]
+	m.iterationList[len(m.iterationList)-1] = Server{}
+	m.iterationList = m.iterationList[:len(m.iterationList)-1]
+
+	return
+}
+
+// IterateAllRandom connects on each call to a randomly chosen server.
+// Each server is chosen exactly once.
 func (m *MullControl) IterateAllRandom() (err error) {
 	// Get server list and connection map if we don't have it
 	if m.serverList == nil {
@@ -89,7 +129,7 @@ func (m *MullControl) ConnectToServer(s Server) (err error) {
 		return err
 	}
 	// Takes a while to connect TODO: Set as config value
-	time.Sleep(time.Second*3)
+	time.Sleep(time.Second * 3)
 	if !m.IsConnected() {
 		return errors.New("failed to connect")
 	}
