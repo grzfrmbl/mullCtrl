@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var parenthesisExtractor = regexp.MustCompile(`(?m)\(([^)]+)\)`)
@@ -49,6 +50,7 @@ func (m *MullControl) IterateAllRandom() (err error) {
 
 	return
 }
+
 // ResetIterationList resets the list of servers to be iterated through.
 func (m *MullControl) ResetIteration() (err error) {
 	if m.serverList == nil {
@@ -81,15 +83,19 @@ func (m *MullControl) ConnectToServer(s Server) (err error) {
 	if err != nil {
 		return err
 	}
+	time.Sleep(time.Second)
 	_, err = runWithoutOutput([]string{"connect"})
 	if err != nil {
 		return err
 	}
+	// Takes a while to connect TODO: Set as config value
+	time.Sleep(time.Second*3)
 	if !m.IsConnected() {
 		return errors.New("failed to connect")
 	}
 	return
 }
+
 // GetAccount returns the account id and expiry date.
 func (m *MullControl) GetAccount() (account, expiry string, err error) {
 	var result string
@@ -104,6 +110,7 @@ func (m *MullControl) GetAccount() (account, expiry string, err error) {
 
 	return
 }
+
 // GetStatus returns a MullvadResponse containing the status of the VPN connection.
 func (m *MullControl) GetStatus() (MullvadResponse, error) {
 	var response MullvadResponse
