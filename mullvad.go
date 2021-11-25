@@ -11,6 +11,11 @@ import (
 )
 
 var parenthesisExtractor = regexp.MustCompile(`(?m)\(([^)]+)\)`)
+var useragents = []string{
+	"curl/7.74.0",
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36",
+	"ozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
+}
 
 type MullControl struct {
 	httpClient    *http.Client
@@ -19,15 +24,13 @@ type MullControl struct {
 	connectionMap map[string]bool
 }
 
-
-
-
 // IterateCountryRandom connects on each call to a randomly chosen server from the selected country.
 // Each server is chosen exactly once.
 func (m *MullControl) IterateCountryRandom(country string) (err error) {
 	// Cleanup this function
-	if country == "" {return errors.New("country is empty")}
-
+	if country == "" {
+		return errors.New("country is empty")
+	}
 
 	// Get server list and connection map if we don't have it
 	if m.serverList == nil {
@@ -130,7 +133,7 @@ func (m *MullControl) ConnectToServer(s Server) (err error) {
 	if err != nil {
 		return err
 	}
-	time.Sleep(time.Second*2)
+	time.Sleep(time.Second * 2)
 	_, err = runWithoutOutput([]string{"connect"})
 	if err != nil {
 		return err
@@ -156,7 +159,12 @@ func (m *MullControl) GetAccount() (account, expiry string, err error) {
 // GetStatus returns a MullvadResponse containing the status of the VPN connection.
 func (m *MullControl) GetStatus() (MullvadResponse, error) {
 	var response MullvadResponse
-	resp, err := m.httpClient.Get("https://am.i.mullvad.net/json")
+
+	req, _ := http.NewRequest("GET", "https://am.i.mullvad.net/json", nil)
+	req.Header.Set("user-agent", useragents[rand.Intn(len(useragents))])
+	req.Header.Set("accept", "*/*")
+
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return response, err
 	}

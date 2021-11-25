@@ -3,6 +3,7 @@ package mullCtrl
 import (
 	"fmt"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -19,7 +20,13 @@ func NewMullControlClient() MullControl {
 
 	return MullControl{
 		httpClient: &http.Client{
-			Timeout: time.Second * 5,
+			Timeout: time.Second * 10,
+			Transport: &http.Transport{
+				Dial: (&net.Dialer{
+					Timeout: 5 * time.Second,
+				}).Dial,
+				TLSHandshakeTimeout: 5 * time.Second,
+			},
 		},
 	}
 }
@@ -67,7 +74,6 @@ func runWithoutOutput(args []string) (string, error) {
 	return "", nil
 }
 func runCommand(args []string) (string, error) {
-
 	cmd := exec.Command("mullvad", args...)
 	dir, err := os.UserHomeDir()
 	if err != nil {
@@ -83,4 +89,3 @@ func runCommand(args []string) (string, error) {
 	time.Sleep(time.Second * 2)
 	return string(output), nil
 }
-
