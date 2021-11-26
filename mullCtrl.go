@@ -20,7 +20,7 @@ func NewMullControlClient() MullControl {
 
 	return MullControl{
 		httpClient: &http.Client{
-			Timeout: time.Second * 10,
+			Timeout: time.Second * 15,
 			Transport: &http.Transport{
 				Dial: (&net.Dialer{
 					Timeout: 5 * time.Second,
@@ -28,7 +28,10 @@ func NewMullControlClient() MullControl {
 				TLSHandshakeTimeout: 5 * time.Second,
 				MaxIdleConns: 30,
 				MaxIdleConnsPerHost: 30,
+				DisableKeepAlives: true, // Force a new connection each request
+				ForceAttemptHTTP2: true, // Still attempt HTTP2
 			},
+
 		},
 	}
 }
