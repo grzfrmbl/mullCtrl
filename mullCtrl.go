@@ -26,6 +26,8 @@ func NewMullControlClient() MullControl {
 					Timeout: 5 * time.Second,
 				}).Dial,
 				TLSHandshakeTimeout: 5 * time.Second,
+				MaxIdleConns: 30,
+				MaxIdleConnsPerHost: 30,
 			},
 		},
 	}
