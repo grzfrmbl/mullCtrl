@@ -3,10 +3,13 @@ package mullCtrl
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/showwin/speedtest-go/speedtest"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"strings"
+"github.com/showwin/speedtest-go"
 	"time"
 )
 
@@ -22,6 +25,36 @@ type MullControl struct {
 	serverList    []Server
 	iterationList []Server
 	connectionMap map[string]bool
+}
+
+func (m *MullControl) FastestServerInCountry(country string) (err error) {
+	return errors.New("Not implemented")
+
+	if m.serverList == nil {
+		_, err = m.GetServers()
+		if err != nil {
+			return err
+		}
+		m.iterationList = make([]Server, 0)
+		user, _ := speedtest.FetchUserInfo()
+
+		// Only use servers from the chosen country
+		for _, server := range m.serverList {
+			if server.CountryShort == country {
+				serverList, _ := speedtest.FetchServerList(user)
+				targets, _ := serverList.FindServer([]int{})
+
+				for _, s := range targets {
+					s.PingTest()
+					s.DownloadTest(false)
+					s.UploadTest(false)
+
+					fmt.Printf("Latency: %s, Download: %f, Upload: %f\n", s.Latency, s.DLSpeed, s.ULSpeed)
+				}
+			}
+		}
+	}
+
 }
 
 // IterateCountryRandom connects on each call to a randomly chosen server from the selected country.
